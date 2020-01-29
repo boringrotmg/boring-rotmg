@@ -59,8 +59,8 @@ namespace wServer.networking.handlers.market
                 }
 
                 /* Update the sellers currency */
-                var sellerAccount = player.Manager.Database.GetAccount(data.SellerId); 
-                player.Manager.Database.UpdateFame(sellerAccount, data.Price);
+                var sellerAccount = player.Manager.Database.GetAccount(data.SellerId);
+                player.Manager.Database.UpdateCurrency(sellerAccount, data.Price, data.Currency);
                 player.Manager.Database.RemoveMarketData(sellerAccount, data.Id);
 
                 Item item = player.Manager.Resources.GameData.Items[data.ItemType];
@@ -74,12 +74,26 @@ namespace wServer.networking.handlers.market
                     seller.Player.SendInfo($"{player.Name} has just bought your {item.ObjectId} for {data.Price} {currency}!");
 
                     // Dynamically update his fame if hes online.
-                    seller.Player.CurrentFame = sellerAccount.Fame;
+                    if (data.Currency == CurrencyType.Fame)
+                    {
+                        seller.Player.CurrentFame = sellerAccount.Fame;
+                    }
+                    else
+                    {
+                        seller.Player.Credits = sellerAccount.Credits;
+                    }
                 }
 
                 /* Update the buyers currency */
-                player.Manager.Database.UpdateFame(client.Account, -data.Price);
-                player.CurrentFame = player.Client.Account.Fame;
+                player.Manager.Database.UpdateCurrency(client.Account, -data.Price, data.Currency);
+                if (data.Currency == CurrencyType.Fame)
+                {
+                    player.CurrentFame = player.Client.Account.Fame;
+                }
+                else
+                {
+                    player.Credits = player.Client.Account.Credits;
+                }
                 player.Manager.Database.AddGift(client.Account, data.ItemType);
                 
                 client.SendPacket(new MarketBuyResult

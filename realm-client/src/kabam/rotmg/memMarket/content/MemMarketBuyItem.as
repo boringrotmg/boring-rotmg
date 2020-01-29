@@ -37,7 +37,9 @@ public class MemMarketBuyItem extends MemMarketItem
         this.buyButton_ = new TextButton(10, "Buy", 96);
         this.buyButton_.x = 2;
         this.buyButton_.y = 62;
-        if (gameSprite.map.player_.fame_ >= this.data_.price_) /* Only add this event listener if we can afford the item */
+
+        var currencyAmount:int = data.currency_ == Currency.FAME ? gameSprite.map.player_.fame_ : gameSprite.map.player_.credits_;
+        if (currencyAmount >= this.data_.price_) /* Only add this event listener if we can afford the item */
         {
             this.buyButton_.addEventListener(MouseEvent.CLICK, this.onBuyClick);
             this.buyButton_.setEnabled(true);
