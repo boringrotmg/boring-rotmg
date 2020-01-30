@@ -59,16 +59,16 @@ namespace wServer.networking.handlers.market
                 }
 
                 /* Update the sellers currency */
-                var sellerAccount = player.Manager.Database.GetAccount(data.SellerId);
-                player.Manager.Database.UpdateCurrency(sellerAccount, data.Price, data.Currency);
-                player.Manager.Database.RemoveMarketData(sellerAccount, data.Id);
+                var sellerAccount = client.Manager.Database.GetAccount(data.SellerId);
+                client.Manager.Database.UpdateCurrency(sellerAccount, data.Price, data.Currency);
+                client.Manager.Database.RemoveMarketData(sellerAccount, data.Id);
 
                 Item item = player.Manager.Resources.GameData.Items[data.ItemType];
 
                 string currency = data.Currency == CurrencyType.Fame ? "fame" : "gold";
 
                 /* Incase he is online, we let him know someone bought his item */
-                var seller = player.Manager.Clients.Keys.SingleOrDefault(_ => _.Account != null && _.Account.AccountId == data.SellerId);
+                var seller = client.Manager.Clients.Keys.SingleOrDefault(_ => _.Account != null && _.Account.AccountId == data.SellerId);
                 if (seller != null)
                 {
                     seller.Player.SendInfo($"{player.Name} has just bought your {item.ObjectId} for {data.Price} {currency}!");
@@ -85,14 +85,14 @@ namespace wServer.networking.handlers.market
                 }
 
                 /* Update the buyers currency */
-                player.Manager.Database.UpdateCurrency(client.Account, -data.Price, data.Currency);
+                client.Manager.Database.UpdateCurrency(client.Account, -data.Price, data.Currency);
                 if (data.Currency == CurrencyType.Fame)
                 {
-                    player.CurrentFame = player.Client.Account.Fame;
+                    player.CurrentFame = client.Account.Fame;
                 }
                 else
                 {
-                    player.Credits = player.Client.Account.Credits;
+                    player.Credits = client.Account.Credits;
                 }
                 player.Manager.Database.AddGift(client.Account, data.ItemType);
                 
