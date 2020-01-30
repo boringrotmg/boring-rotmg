@@ -51,6 +51,7 @@ namespace wServer.networking.handlers.market
 
                 /* Remove it from the market */
                 player.Manager.Database.RemoveMarketData(client.Account, data.Id);
+                player.Manager.Database.AddGift(client.Account, data.ItemType);
 
                 List<MarketData> myOffers = new List<MarketData>();
                 for (var i = 0; i < client.Account.MarketOffers.Length; i++)
