@@ -67,7 +67,7 @@ namespace wServer.networking.handlers.market
                         client.SendPacket(new MarketAddResult
                         {
                             Code = MarketAddResult.INVALID_PRICE,
-                            Description = "You cannot sell items for 0 or less fame."
+                            Description = "You cannot sell items for 0 or less."
                         });
                         return;
                     }
