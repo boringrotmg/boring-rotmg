@@ -94,7 +94,7 @@ namespace wServer.networking.handlers.market
                 {
                     player.Credits = client.Account.Credits;
                 }
-                player.Manager.Database.AddGift(client.Account, data.ItemType);
+                client.Manager.Database.AddGift(client.Account, data.ItemType);
                 
                 client.SendPacket(new MarketBuyResult
                 {
