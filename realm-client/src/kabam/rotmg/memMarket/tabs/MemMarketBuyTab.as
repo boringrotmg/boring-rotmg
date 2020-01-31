@@ -106,6 +106,8 @@ public class MemMarketBuyTab extends MemMarketTab
         this.sortChoices_.setValue(SortUtils.LOWEST_TO_HIGHEST);
         this.sortChoices_.addEventListener(Event.CHANGE, this.onSortChoicesChanged);
         addChild(this.sortChoices_);
+
+        this.searchItemsFunc(true);
     }
 
     private function onSortChoicesChanged(event:Event) : void
@@ -117,23 +119,48 @@ public class MemMarketBuyTab extends MemMarketTab
     {
         if (event.keyCode == KeyCodes.ENTER)
         {
-            /* Remove old scrollbar */
-            if (this.searchScroll != null)
-            {
-                this.searchScroll.removeEventListener(Event.CHANGE, this.onSearchScrollChanged);
-                removeChild(this.searchScroll);
-                this.searchScroll = null;
-            }
+            this.searchItemsFunc();
+        }
+    }
 
-            if (!StringUtil.trim(this.searchField_.text())) /* Clear results if empty */
-            {
-                this.clearPreviousResults(false);
-                return;
-            }
+    private function searchItemsFunc(first:Boolean = false) : void
+    {
+        /* Remove old scrollbar */
+        if (this.searchScroll != null)
+        {
+            this.searchScroll.removeEventListener(Event.CHANGE, this.onSearchScrollChanged);
+            removeChild(this.searchScroll);
+            this.searchScroll = null;
+        }
 
+        if (!StringUtil.trim(this.searchField_.text()) && !first) /* Clear results if empty */
+        {
             this.clearPreviousResults(false);
+            return;
+        }
 
-            var index:int = 0;
+        this.clearPreviousResults(false);
+
+        var index:int = 0;
+        if (first)
+        {
+            for each (var w:String in ObjectLibrary.preloadedCustom_)
+            {
+                if (ItemUtils.isBanned(ObjectLibrary.idToTypeItems_[w])) /* Skip on banned items */
+                {
+                    continue;
+                }
+
+                var preloaded:MemMarketItem = new MemMarketItem(this.gameSprite_, SEARCH_ITEM_SIZE, SEARCH_ITEM_SIZE, 80, ObjectLibrary.idToTypeItems_[w], null);
+                preloaded.x = SEARCH_ITEM_SIZE * int(index % 5) + SEARCH_X_OFFSET;
+                preloaded.y = SEARCH_ITEM_SIZE * int(index / 5) + SEARCH_Y_OFFSET;
+                preloaded.addEventListener(MouseEvent.CLICK, this.onSearchClick);
+                this.searchItems.push(preloaded);
+                index++;
+            }
+        }
+        else
+        {
             for each (var i:String in ObjectLibrary.typeToIdItems_)
             {
                 if (i.indexOf(this.searchField_.text().toLowerCase()) >= 0)
@@ -151,22 +178,22 @@ public class MemMarketBuyTab extends MemMarketTab
                     index++;
                 }
             }
+        }
 
-            for each (var x:MemMarketItem in this.searchItems) /* Draw our results */
-            {
-                this.searchBackground.addChild(x);
-            }
+        for each (var x:MemMarketItem in this.searchItems) /* Draw our results */
+        {
+            this.searchBackground.addChild(x);
+        }
 
-            this.searchBackground.y = 0; /* Reset height */
-            if (this.searchBackground.height > 350)
-            {
-                this.searchScroll = new Scrollbar(6, 350);
-                this.searchScroll.x = 258;
-                this.searchScroll.y = SEARCH_Y_OFFSET;
-                this.searchScroll.setIndicatorSize(350, this.searchBackground.height);
-                this.searchScroll.addEventListener(Event.CHANGE, this.onSearchScrollChanged);
-                addChild(this.searchScroll);
-            }
+        this.searchBackground.y = 0; /* Reset height */
+        if (this.searchBackground.height > 350)
+        {
+            this.searchScroll = new Scrollbar(6, 350);
+            this.searchScroll.x = 258;
+            this.searchScroll.y = SEARCH_Y_OFFSET;
+            this.searchScroll.setIndicatorSize(350, this.searchBackground.height);
+            this.searchScroll.addEventListener(Event.CHANGE, this.onSearchScrollChanged);
+            addChild(this.searchScroll);
         }
     }
 
