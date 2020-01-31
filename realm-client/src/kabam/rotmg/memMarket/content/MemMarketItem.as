@@ -57,10 +57,6 @@ public class MemMarketItem extends Sprite
             this.icon_.y = -3;
             addChild(this.icon_);
 
-            this.toolTip_ = new EquipmentToolTip(this.itemType_, null, -1, InventoryOwnerTypes.NPC);
-            this.toolTip_.visible = false; /* Not visible by default, only visible when you hover mouse over */
-            this.gameSprite_.mui_.layers.overlay.addChild(this.toolTip_); /* Add it to the overlay, adding it to the Shape makes it have a wrong position */
-
             addEventListener(MouseEvent.MOUSE_OVER, this.onOver);
             addEventListener(MouseEvent.MOUSE_OUT, this.onOut);
         }
@@ -75,14 +71,18 @@ public class MemMarketItem extends Sprite
     /* Mouse over */
     private function onOver(event:MouseEvent) : void
     {
-        this.toolTip_.visible = true;
+        this.toolTip_ = new EquipmentToolTip(this.itemType_, null, -1, InventoryOwnerTypes.NPC);
+        this.gameSprite_.mui_.layers.overlay.addChild(this.toolTip_); /* Add it to the overlay, adding it to the Shape makes it have a wrong position */
+
         this.icon_.alpha = 0.7;
     }
 
     /* Mouse out */
     private function onOut(event:MouseEvent) : void
     {
-        this.toolTip_.visible = false;
+        this.toolTip_.parent.removeChild(this.toolTip_);
+        this.toolTip_ = null;
+
         this.icon_.alpha = 1.0;
     }
 
