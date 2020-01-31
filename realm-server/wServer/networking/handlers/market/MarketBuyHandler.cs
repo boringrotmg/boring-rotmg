@@ -22,6 +22,7 @@ namespace wServer.networking.handlers.market
             client.Manager.Logic.AddPendingAction(t => 
             {
                 var player = client.Player;
+                var acc = client.Account;
                 if (player == null || IsTest(client))
                 {
                     return;
@@ -48,7 +49,7 @@ namespace wServer.networking.handlers.market
                     return;
                 }
 
-                if (player.GetCurrency(data.Currency) < data.Price) /* Make sure we have enough to buy the item */
+                if (acc.Credits < data.Price) /* Make sure we have enough to buy the item */
                 {
                     client.SendPacket(new MarketBuyResult
                     {
@@ -62,6 +63,7 @@ namespace wServer.networking.handlers.market
                 var sellerAccount = client.Manager.Database.GetAccount(data.SellerId);
                 client.Manager.Database.UpdateCurrency(sellerAccount, data.Price, data.Currency);
                 client.Manager.Database.RemoveMarketData(sellerAccount, data.Id);
+                sellerAccount.FlushAsync();
 
                 Item item = player.Manager.Resources.GameData.Items[data.ItemType];
 
@@ -85,16 +87,17 @@ namespace wServer.networking.handlers.market
                 }
 
                 /* Update the buyers currency */
-                client.Manager.Database.UpdateCurrency(client.Account, -data.Price, data.Currency);
+                client.Manager.Database.UpdateCurrency(acc, -data.Price, data.Currency);
                 if (data.Currency == CurrencyType.Fame)
                 {
-                    player.CurrentFame = client.Account.Fame;
+                    player.CurrentFame = acc.Fame;
                 }
                 else
                 {
-                    player.Credits = client.Account.Credits;
+                    player.Credits = acc.Credits;
                 }
-                client.Manager.Database.AddGift(client.Account, data.ItemType);
+                client.Manager.Database.AddGift(acc, data.ItemType);
+                acc.FlushAsync();
                 
                 client.SendPacket(new MarketBuyResult
                 {
