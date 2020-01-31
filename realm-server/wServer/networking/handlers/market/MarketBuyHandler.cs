@@ -49,7 +49,7 @@ namespace wServer.networking.handlers.market
                     return;
                 }
 
-                if (acc.Credits < data.Price) /* Make sure we have enough to buy the item */
+                if (player.GetCurrency(data.Currency) < data.Price) /* Make sure we have enough to buy the item */
                 {
                     client.SendPacket(new MarketBuyResult
                     {
