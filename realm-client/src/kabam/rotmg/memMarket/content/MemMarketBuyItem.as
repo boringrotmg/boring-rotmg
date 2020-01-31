@@ -38,16 +38,7 @@ public class MemMarketBuyItem extends MemMarketItem
         this.buyButton_.x = 2;
         this.buyButton_.y = 62;
 
-        var currencyAmount:int = data.currency_ == Currency.FAME ? gameSprite.map.player_.fame_ : gameSprite.map.player_.credits_;
-        if (currencyAmount >= this.data_.price_) /* Only add this event listener if we can afford the item */
-        {
-            this.buyButton_.addEventListener(MouseEvent.CLICK, this.onBuyClick);
-            this.buyButton_.setEnabled(true);
-        }
-        else
-        {
-            this.buyButton_.setEnabled(false);
-        }
+        this.updateButton();
         addChild(this.buyButton_);
 
         this.priceText_ = new SimpleText(10, 0xFFFFFF, false, width, 0);
@@ -87,6 +78,21 @@ public class MemMarketBuyItem extends MemMarketItem
     private function onVerified(event:Event) : void
     {
         this.gameSprite_.gsc_.marketBuy(this.id_);
+    }
+
+    public function updateButton() : void
+    {
+        var currencyAmount:int = this.data_.currency_ == Currency.FAME ? this.gameSprite_.map.player_.fame_ : this.gameSprite_.map.player_.credits_;
+        if (currencyAmount >= this.data_.price_) /* Only add this event listener if we can afford the item */
+        {
+            this.buyButton_.addEventListener(MouseEvent.CLICK, this.onBuyClick);
+            this.buyButton_.setEnabled(true);
+        }
+        else
+        {
+            this.buyButton_.removeEventListener(MouseEvent.CLICK, this.onBuyClick);
+            this.buyButton_.setEnabled(false);
+        }
     }
 
     /* Clear */

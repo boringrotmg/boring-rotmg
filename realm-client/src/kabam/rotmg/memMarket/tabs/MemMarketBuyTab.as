@@ -254,6 +254,14 @@ public class MemMarketBuyTab extends MemMarketTab
         this.sortOffers();
     }
 
+    private function refreshOffers() : void
+    {
+        for each (var o:MemMarketBuyItem in this.resultItems_)
+        {
+            o.updateButton();
+        }
+    }
+
     /* Sorts and positions offers */
     private function sortOffers() : void
     {
@@ -298,6 +306,7 @@ public class MemMarketBuyTab extends MemMarketTab
         }
 
         this.removeOffer(result.offerId_);
+        this.refreshOffers();
 
         DialogUtils.makeSimpleDialog(this.gameSprite_, "Success", result.description_);
     }
