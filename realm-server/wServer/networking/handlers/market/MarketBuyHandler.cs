@@ -21,13 +21,12 @@ namespace wServer.networking.handlers.market
         {
             client.Manager.Logic.AddPendingAction(t => 
             {
-                var player = client.Player;
                 var acc = client.Account;
-                if (player == null || IsTest(client))
+                if (client.Player == null || IsTest(client))
                 {
                     return;
                 }
-
+                client.Manager.Database.ReloadAccount(acc);
                 DbMarketData data = client.Manager.Database.GetMarketData(packet.Id);
                 if (data == null) /* Make sure the item exist before buying it */
                 {
@@ -39,7 +38,7 @@ namespace wServer.networking.handlers.market
                     return;
                 }
 
-                if (data.SellerId == player.AccountId) /* If we somehow try to buy our own item */
+                if (data.SellerId == client.Player.AccountId) /* If we somehow try to buy our own item */
                 {
                     client.SendPacket(new MarketBuyResult
                     {
@@ -49,7 +48,8 @@ namespace wServer.networking.handlers.market
                     return;
                 }
 
-                if (player.GetCurrency(data.Currency) < data.Price) /* Make sure we have enough to buy the item */
+                int currencyAmount = data.Currency == CurrencyType.Fame ? acc.Fame : acc.Credits;
+                if (currencyAmount < data.Price) /* Make sure we have enough to buy the item */
                 {
                     client.SendPacket(new MarketBuyResult
                     {
@@ -63,9 +63,8 @@ namespace wServer.networking.handlers.market
                 var sellerAccount = client.Manager.Database.GetAccount(data.SellerId);
                 client.Manager.Database.UpdateCurrency(sellerAccount, data.Price, data.Currency);
                 client.Manager.Database.RemoveMarketData(sellerAccount, data.Id);
-                sellerAccount.FlushAsync();
 
-                Item item = player.Manager.Resources.GameData.Items[data.ItemType];
+                Item item = client.Manager.Resources.GameData.Items[data.ItemType];
 
                 string currency = data.Currency == CurrencyType.Fame ? "fame" : "gold";
 
@@ -73,31 +72,20 @@ namespace wServer.networking.handlers.market
                 var seller = client.Manager.Clients.Keys.SingleOrDefault(_ => _.Account != null && _.Account.AccountId == data.SellerId);
                 if (seller != null)
                 {
-                    seller.Player.SendInfo($"{player.Name} has just bought your {item.ObjectId} for {data.Price} {currency}!");
+                    seller.Player.SendInfo($"{client.Player.Name} has just bought your {item.ObjectId} for {data.Price} {currency}!");
 
-                    // Dynamically update his fame if hes online.
-                    if (data.Currency == CurrencyType.Fame)
-                    {
-                        seller.Player.CurrentFame = sellerAccount.Fame;
-                    }
-                    else
-                    {
-                        seller.Player.Credits = sellerAccount.Credits;
-                    }
+                    /* Dynamically update his currency if hes online */
+                    seller.Player.CurrentFame = sellerAccount.Fame;
+                    seller.Player.Credits = sellerAccount.Credits;
                 }
 
                 /* Update the buyers currency */
-                client.Manager.Database.UpdateCurrency(acc, -data.Price, data.Currency);
-                if (data.Currency == CurrencyType.Fame)
+                client.Manager.Database.UpdateCurrency(acc, -data.Price, data.Currency).ContinueWith(_ =>
                 {
-                    player.CurrentFame = acc.Fame;
-                }
-                else
-                {
-                    player.Credits = acc.Credits;
-                }
+                    client.Player.CurrentFame = acc.Fame;
+                    client.Player.Credits = acc.Credits;
+                });
                 client.Manager.Database.AddGift(acc, data.ItemType);
-                acc.FlushAsync();
                 
                 client.SendPacket(new MarketBuyResult
                 {
