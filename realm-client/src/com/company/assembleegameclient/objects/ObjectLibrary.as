@@ -26,6 +26,7 @@ import com.company.util.AssetLibrary;
       public static const typeToAnimationsData_:Dictionary = new Dictionary();
       public static const typeToIdItems_:Dictionary = new Dictionary();
       public static const idToTypeItems_:Dictionary = new Dictionary();
+      public static const preloadedCustom_:Dictionary = new Dictionary();
       public static const defaultProps_:ObjectProperties = new ObjectProperties(null);
       
       public static const TYPE_MAP:Object = {
@@ -62,7 +63,7 @@ import com.company.util.AssetLibrary;
          super();
       }
       
-      public static function parseFromXML(xml:XML) : void
+      public static function parseFromXML(xml:XML, preload:Boolean) : void
       {
          var objectXML:XML = null;
          var id:String = null;
@@ -95,6 +96,11 @@ import com.company.util.AssetLibrary;
             {
                typeToIdItems_[objectType] = id.toLowerCase(); /* Saves us the power to do this later */
                idToTypeItems_[id.toLowerCase()] = objectType;
+            }
+
+            if (preload)
+            {
+               preloadedCustom_[objectType] = id.toLowerCase();
             }
 
             if(String(objectXML.Class) == "Player")

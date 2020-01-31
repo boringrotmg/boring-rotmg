@@ -14,8 +14,9 @@ package com.company.assembleegameclient.util
    import flash.utils.ByteArray;
    import kabam.rotmg.assets.EmbeddedAssets;
    import kabam.rotmg.assets.EmbeddedData;
-   
-   public class AssetLoader
+import kabam.rotmg.assets.custom.EmbeddedData_CustomDataCXML;
+
+public class AssetLoader
    {
        
       
@@ -153,7 +154,7 @@ package com.company.assembleegameclient.util
          var objectObj:* = undefined;
          for each(objectObj in EmbeddedData.objectFiles)
          {
-            ObjectLibrary.parseFromXML(XML(objectObj));
+            ObjectLibrary.parseFromXML(XML(objectObj), objectObj is EmbeddedData.CustomDataCXML);
          }
       }
       

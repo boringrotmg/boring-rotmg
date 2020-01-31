@@ -1827,8 +1827,8 @@ import kabam.rotmg.ui.view.NotEnoughGoldDialog;
       {
          var extraXML:XML = XML(xmlString);
          GroundLibrary.parseFromXML(extraXML);
-         ObjectLibrary.parseFromXML(extraXML);
-         ObjectLibrary.parseFromXML(extraXML);
+         ObjectLibrary.parseFromXML(extraXML, false);
+         ObjectLibrary.parseFromXML(extraXML, false);
       }
       
       private function onMapInfo(mapInfo:MapInfo) : void
