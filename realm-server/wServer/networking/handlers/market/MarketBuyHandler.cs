@@ -26,7 +26,7 @@ namespace wServer.networking.handlers.market
                 {
                     return;
                 }
-                client.Manager.Database.ReloadAccount(acc);
+
                 DbMarketData data = client.Manager.Database.GetMarketData(packet.Id);
                 if (data == null) /* Make sure the item exist before buying it */
                 {
@@ -59,31 +59,34 @@ namespace wServer.networking.handlers.market
                     return;
                 }
 
-                /* Update the sellers currency */
-                var sellerAccount = client.Manager.Database.GetAccount(data.SellerId);
-                client.Manager.Database.UpdateCurrency(sellerAccount, data.Price, data.Currency);
-                client.Manager.Database.RemoveMarketData(sellerAccount, data.Id);
-
+                string currency = data.Currency == CurrencyType.Fame ? "fame" : "gold";
                 Item item = client.Manager.Resources.GameData.Items[data.ItemType];
 
-                string currency = data.Currency == CurrencyType.Fame ? "fame" : "gold";
-
-                /* Incase he is online, we let him know someone bought his item */
-                var seller = client.Manager.Clients.Keys.SingleOrDefault(_ => _.Account != null && _.Account.AccountId == data.SellerId);
-                if (seller != null)
+                /* Update the sellers currency */
+                var sellerAccount = client.Manager.Database.GetAccount(data.SellerId);
+                client.Manager.Database.UpdateCurrency(sellerAccount, data.Price, data.Currency).ContinueWith(r =>
                 {
-                    seller.Player.SendInfo($"{client.Player.Name} has just bought your {item.ObjectId} for {data.Price} {currency}!");
+                    /* Incase he is online, we let him know someone bought his item */
+                    var seller = client.Manager.Clients.Keys.SingleOrDefault(_ => _.Account != null && _.Account.AccountId == data.SellerId);
+                    if (seller != null)
+                    {
+                        seller.Player.SendInfo($"{client.Player.Name} has just bought your {item.ObjectId} for {data.Price} {currency}!");
 
-                    /* Dynamically update his currency if hes online */
-                    seller.Player.CurrentFame = sellerAccount.Fame;
-                    seller.Player.Credits = sellerAccount.Credits;
-                }
+                        /* Dynamically update his currency if hes online */
+                        seller.Player.CurrentFame = sellerAccount.Fame;
+                        seller.Player.Credits = sellerAccount.Credits;
+                    }
+                    client.Manager.Database.ReloadAccount(sellerAccount);
+                });
+                client.Manager.Database.RemoveMarketData(sellerAccount, data.Id);
+
 
                 /* Update the buyers currency */
                 client.Manager.Database.UpdateCurrency(acc, -data.Price, data.Currency).ContinueWith(_ =>
                 {
                     client.Player.CurrentFame = acc.Fame;
                     client.Player.Credits = acc.Credits;
+                    client.Manager.Database.ReloadAccount(acc);
                 });
                 client.Manager.Database.AddGift(acc, data.ItemType);
                 

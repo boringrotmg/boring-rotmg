@@ -37,6 +37,26 @@ namespace wServer.networking.handlers.market
                     return;
                 }
 
+                if (packet.Price <= 0) /* Client has this check, but check it incase it was modified */
+                {
+                    client.SendPacket(new MarketAddResult
+                    {
+                        Code = MarketAddResult.INVALID_PRICE,
+                        Description = "You cannot sell items for 0 or less."
+                    });
+                    return;
+                }
+
+                if (!Enum.IsDefined(typeof(CurrencyType), packet.Currency) || packet.Currency == (int)CurrencyType.GuildFame) /* Make sure its a valid currency and its NOT GuildFame */
+                {
+                    client.SendPacket(new MarketAddResult
+                    {
+                        Code = MarketAddResult.INVALID_CURRENCY,
+                        Description = "Invalid currency."
+                    });
+                    return;
+                }
+
                 for (var i = 0; i < packet.Slots.Length; i++)
                 {
                     byte slotId = packet.Slots[i];
@@ -46,7 +66,7 @@ namespace wServer.networking.handlers.market
                         client.SendPacket(new MarketAddResult
                         {
                             Code = MarketAddResult.SLOT_IS_NULL,
-                            Description = $"The slot {slotId - 4} is empty or invalid."
+                            Description = $"The slot {slotId} is empty or invalid."
                         });
                         return;
                     }
@@ -58,26 +78,6 @@ namespace wServer.networking.handlers.market
                         {
                             Code = MarketAddResult.ITEM_IS_SOULBOUND,
                             Description = "You cannot sell banned items."
-                        });
-                        return;
-                    }
-
-                    if (packet.Price <= 0) /* Client has this check, but check it incase it was modified */
-                    {
-                        client.SendPacket(new MarketAddResult
-                        {
-                            Code = MarketAddResult.INVALID_PRICE,
-                            Description = "You cannot sell items for 0 or less."
-                        });
-                        return;
-                    }
-
-                    if (!Enum.IsDefined(typeof(CurrencyType), packet.Currency) || packet.Currency == (int)CurrencyType.GuildFame) /* Make sure its a valid currency and its NOT GuildFame */
-                    {
-                        client.SendPacket(new MarketAddResult
-                        {
-                            Code = MarketAddResult.INVALID_CURRENCY,
-                            Description = "Invalid currency."
                         });
                         return;
                     }
