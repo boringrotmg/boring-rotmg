@@ -182,6 +182,11 @@ namespace wServer.logic.loot
                     bagType = i.BagType;
                 }
 
+                if (i.BagType == 4)
+                {
+                    owners[0].Manager.Chat.Announce($"{owners[0].Name} just got a white bag containing {i.ObjectId}!");
+                }
+
                 items[idx] = i;
                 idx++;
 
